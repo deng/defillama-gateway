@@ -306,6 +306,22 @@ describe('GET /api/v1/dapps', () => {
     expect(body.error).toContain('Invalid limit');
   });
 
+  it('rejects non-integer pagination values', async () => {
+    const app = await createApp();
+
+    const limitResponse = await app.fetch(
+      mockRequest('GET', 'http://localhost/api/v1/dapps?chain=eth&limit=1.5'),
+      mockEnv,
+    );
+    expect(limitResponse.status).toBe(400);
+
+    const offsetResponse = await app.fetch(
+      mockRequest('GET', 'http://localhost/api/v1/dapps?chain=eth&offset=1e2'),
+      mockEnv,
+    );
+    expect(offsetResponse.status).toBe(400);
+  });
+
   it('validates invalid fields filters', async () => {
     const app = await createApp();
     const response = await app.fetch(
@@ -381,5 +397,22 @@ describe('GET /api/v1/dapps', () => {
     const body: any = await response.json();
     expect(body.success).toBe(false);
     expect(body.error).toContain('DefiLlama API error 500');
+  });
+
+  it('falls back to default timeout and cache ttl when env values are invalid', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(protocolsMockResponse());
+    const app = await createApp();
+    const invalidEnv = {
+      ...mockEnv,
+      REQUEST_TIMEOUT_SECS: 'abc',
+      PROTOCOLS_CACHE_TTL: 'xyz',
+    };
+
+    const firstResponse = await app.fetch(mockRequest('GET', 'http://localhost/api/v1/dapps?chain=eth'), invalidEnv);
+    const secondResponse = await app.fetch(mockRequest('GET', 'http://localhost/api/v1/dapps?chain=eth'), invalidEnv);
+
+    expect(firstResponse.status).toBe(200);
+    expect(secondResponse.status).toBe(200);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
