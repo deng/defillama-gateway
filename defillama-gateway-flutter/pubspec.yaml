@@ -5,9 +5,9 @@
 name: 'defillama_gateway'
 version: '1.0.0'
 description: 'ZeroWallet DefiLlama Gateway API client for Flutter'
-homepage: 'https://github.com/deng/defillama-gateway'
+homepage: 'homepage'
 environment:
-  sdk: '>=2.18.0 <4.0.0'
+  sdk: '>=2.12.0 <4.0.0'
 dependencies:
   collection: '>=1.17.0 <2.0.0'
   http: '>=0.13.0 <2.0.0'
