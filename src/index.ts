@@ -244,6 +244,25 @@ function parseFilters(group: string | undefined, category: string | undefined): 
   return filters;
 }
 
+function parseStrictInteger(value: string): number | null {
+  const normalized = value.trim();
+  if (!/^\d+$/.test(normalized)) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+  return Number.isSafeInteger(parsed) ? parsed : null;
+}
+
+function parsePositiveSeconds(value: string | undefined, fallbackSeconds: number): number {
+  if (!value?.trim()) {
+    return fallbackSeconds;
+  }
+
+  const parsed = parseStrictInteger(value);
+  return parsed && parsed > 0 ? parsed : fallbackSeconds;
+}
+
 function parsePagination(limit: string | undefined, offset: string | undefined): DappPagination | ApiErrorResponse {
   const pagination: DappPagination = {
     limit: null,
@@ -251,8 +270,8 @@ function parsePagination(limit: string | undefined, offset: string | undefined):
   };
 
   if (limit?.trim()) {
-    const parsedLimit = Number.parseInt(limit.trim(), 10);
-    if (!Number.isInteger(parsedLimit) || parsedLimit <= 0) {
+    const parsedLimit = parseStrictInteger(limit);
+    if (parsedLimit === null || parsedLimit <= 0) {
       return {
         success: false,
         error: `Invalid limit parameter '${limit}'. Expected a positive integer`,
@@ -268,8 +287,8 @@ function parsePagination(limit: string | undefined, offset: string | undefined):
   }
 
   if (offset?.trim()) {
-    const parsedOffset = Number.parseInt(offset.trim(), 10);
-    if (!Number.isInteger(parsedOffset) || parsedOffset < 0) {
+    const parsedOffset = parseStrictInteger(offset);
+    if (parsedOffset === null || parsedOffset < 0) {
       return {
         success: false,
         error: `Invalid offset parameter '${offset}'. Expected a non-negative integer`,
@@ -391,7 +410,7 @@ function projectProtocol(protocol: DappResource, projection: DappProjection): Da
 }
 
 function timeoutSignal(secs: string): AbortSignal {
-  return AbortSignal.timeout(parseInt(secs || '12', 10) * 1000);
+  return AbortSignal.timeout(parsePositiveSeconds(secs, 12) * 1000);
 }
 
 async function fetchProtocols(env: Env): Promise<DefiLlamaProtocol[]> {
@@ -412,7 +431,7 @@ async function fetchProtocols(env: Env): Promise<DefiLlamaProtocol[]> {
   }
 
   const data = (await response.json()) as DefiLlamaProtocol[];
-  const ttl = parseInt(env.PROTOCOLS_CACHE_TTL || '300', 10) * 1000;
+  const ttl = parsePositiveSeconds(env.PROTOCOLS_CACHE_TTL, 300) * 1000;
 
   protocolsCache = {
     data,

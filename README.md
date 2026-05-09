@@ -141,6 +141,8 @@ GET /api/v1/dapps?chain=eth&fields=id,name,chainTvl&compact=true&limit=20&offset
 
 ## 域名配置
 
+当前仓库中的 `routes` 和 `zone_id` 是生产环境配置；如果要在其他 Cloudflare 账号或测试环境复用这个 Worker，需要替换成自己的域名与 zone。
+
 Worker 路由已经在 `wrangler.toml` 中配置为：
 
 ```toml
