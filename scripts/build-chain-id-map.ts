@@ -20,16 +20,23 @@ interface DefiLlamaChainEntry {
   chainId?: number | null;
 }
 
-async function main() {
-  console.log('Fetching chainid.network (ethereum-lists/chains)...');
-  const chainlistResp = await fetch('https://chainid.network/chains.json');
-  const chainlist: ChainlistEntry[] = await chainlistResp.json();
-  console.log(`  Got ${chainlist.length} chain entries`);
+async function fetchJson<T>(url: string, label: string): Promise<T> {
+  console.log(`Fetching ${label}...`);
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch ${label}: HTTP ${resp.status} ${resp.statusText}`);
+  }
+  const data: unknown = await resp.json();
+  if (!Array.isArray(data)) {
+    throw new Error(`${label} did not return an array`);
+  }
+  console.log(`  Got ${data.length} entries`);
+  return data as T;
+}
 
-  console.log('Fetching DefiLlama /chains...');
-  const defillamaResp = await fetch('https://api.llama.fi/chains');
-  const defillamaChains: DefiLlamaChainEntry[] = await defillamaResp.json();
-  console.log(`  Got ${defillamaChains.length} chain entries`);
+async function main() {
+  const chainlist = await fetchJson<ChainlistEntry[]>('https://chainid.network/chains.json', 'chainid.network (ethereum-lists/chains)');
+  const defillamaChains = await fetchJson<DefiLlamaChainEntry[]>('https://api.llama.fi/chains', 'DefiLlama /chains');
 
   // Build set of known DefiLlama chain names (normalized)
   const defillamaNames = new Map<string, string>();

@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` — Start local Wrangler dev server (port 8787)
 - `npm test` — Run all tests once (Vitest)
 - `npm run test:watch` — Run tests in watch mode
-- `npm run typecheck` — TypeScript type check (tsc --noEmit)
-- `npm run deploy` — Deploy to Cloudflare Workers (auto-runs `build-chain-ids` via predeploy)
+- `npm run typecheck` — TypeScript type check for src + test + scripts
+- `npm run deploy` — Deploy to Cloudflare Workers
 - `npm run build-chain-ids` — Regenerate `src/generated/chain-ids.ts` from chainid.network + DefiLlama
 - `npm run generate-sdk` — Regenerate Flutter SDK from live OpenAPI spec
 
