@@ -150,6 +150,31 @@ describe('GET /api/v1/dapps', () => {
     expect(body.data.protocols[0].name).toBe('PancakeSwap');
   });
 
+  it('resolves chain ID 1 to Ethereum', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(protocolsMockResponse());
+
+    const app = await createApp();
+    const response = await app.fetch(mockRequest('GET', 'http://localhost/api/v1/dapps?chain=1'), mockEnv);
+
+    expect(response.status).toBe(200);
+    const body: any = await response.json();
+    expect(body.data.chain).toBe('Ethereum');
+    expect(body.data.total).toBe(3);
+  });
+
+  it('resolves chain ID 56 to BSC', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(protocolsMockResponse());
+
+    const app = await createApp();
+    const response = await app.fetch(mockRequest('GET', 'http://localhost/api/v1/dapps?chain=56'), mockEnv);
+
+    expect(response.status).toBe(200);
+    const body: any = await response.json();
+    expect(body.data.chain).toBe('BSC');
+    expect(body.data.total).toBe(1);
+    expect(body.data.protocols[0].name).toBe('PancakeSwap');
+  });
+
   it('filters by group', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(protocolsMockResponse());
 
