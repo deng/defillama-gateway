@@ -6,7 +6,9 @@
   "scripts": {
     "start": "cp -n .env.example .env 2>/dev/null; wrangler dev",
     "dev": "wrangler dev",
+    "predeploy": "npm run build-chain-ids",
     "deploy": "dotenv -- wrangler deploy",
+    "build-chain-ids": "npx tsx scripts/build-chain-id-map.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
