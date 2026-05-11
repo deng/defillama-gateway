@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { CHAIN_ALIASES } from './chain-aliases';
+import { CHAIN_ID_MAP } from './generated/chain-ids';
 
 export interface Env {
   DEFILLAMA_BASE_URL: string;
@@ -96,39 +98,6 @@ interface CacheEntry {
   data: DefiLlamaProtocol[];
   expiresAt: number;
 }
-
-const CHAIN_ALIASES: Record<string, string> = {
-  eth: 'Ethereum',
-  ethereum: 'Ethereum',
-  bsc: 'BSC',
-  bnb: 'BSC',
-  bnbchain: 'BSC',
-  binancesmartchain: 'BSC',
-  polygon: 'Polygon',
-  matic: 'Polygon',
-  arb: 'Arbitrum',
-  arbitrum: 'Arbitrum',
-  op: 'Optimism',
-  optimism: 'Optimism',
-  base: 'Base',
-  avax: 'Avalanche',
-  avalanche: 'Avalanche',
-  sol: 'Solana',
-  solana: 'Solana',
-  tron: 'Tron',
-  trx: 'Tron',
-  ton: 'TON',
-  sui: 'Sui',
-  apt: 'Aptos',
-  aptos: 'Aptos',
-  linea: 'Linea',
-  mantle: 'Mantle',
-  scroll: 'Scroll',
-  ronin: 'Ronin',
-  zksync: 'zkSync Era',
-  zksyncera: 'zkSync Era',
-};
-
 let protocolsCache: CacheEntry | undefined;
 
 const DEFAULT_SORT: DappSort = 'chainTvl_desc';
@@ -149,6 +118,15 @@ function resolveCanonicalChain(input: string): string {
   if (!trimmed) {
     return trimmed;
   }
+
+  // Check chain ID first (numeric input)
+  if (/^\d+$/.test(trimmed)) {
+    const chainId = CHAIN_ID_MAP[trimmed];
+    if (chainId) {
+      return chainId;
+    }
+  }
+
   const alias = CHAIN_ALIASES[normalizeKey(trimmed)];
   if (alias) {
     return alias;
@@ -706,6 +684,25 @@ app.get('/health', (c) => {
 
 app.get('/api/v1/openapi.json', (c) => {
   return c.json(openapiSpec());
+});
+
+app.get('/docs', (c) => {
+  return c.html(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DefiLlama Gateway API Docs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.5/swagger-ui.css" integrity="sha384-9Q2fpS+xeS4ffJy6CagnwoUl+4ldAYhOs9pgZuEKxypVModhmZFzeMlvVsAjf7uT" crossorigin="anonymous" />
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.5/swagger-ui-bundle.js" integrity="sha384-ACi6p1pgYLrDqBMp9QGYWrvcHVJ6XBash5d/uHImhNJ6AJKuQ3qzvkNIZ64Y+RVt" crossorigin="anonymous"></script>
+  <script>
+    SwaggerUIBundle({ url: '/api/v1/openapi.json', dom_id: '#swagger-ui' });
+  </script>
+</body>
+</html>`);
 });
 
 app.get('/api/v1/dapps', async (c) => {
