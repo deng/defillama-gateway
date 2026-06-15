@@ -61,11 +61,13 @@ GET /api/v1/dapps?chain=eth&category=Liquid%20Staking
 GET /api/v1/dapps?chain=eth&group=dex&limit=20&offset=0
 GET /api/v1/dapps?chain=eth&fields=id,name,category,chainTvl&sort=chainTvl_desc&limit=20&offset=0
 GET /api/v1/dapps?chain=eth&fields=id,name,chainTvl&excludeSummary=true&includeTotal=false&limit=20&offset=0
+GET /api/v1/dapps?chain=eth&search=uniswap
 GET /api/v1/dapps?chain=eth&fields=id,name,chainTvl&compact=true&limit=20&offset=0
 ```
 
 可选筛选参数：
 
+- `search`: 按 DApp 名称或 slug 模糊搜索（大小写不敏感）
 - `group`: `dex`、`bridge`、`staking`、`game`、`other`
 - `category`: 按 DefiLlama 原始 `category` 名称过滤，大小写和分隔符不敏感
 - `limit`: 返回条数上限，正整数，最大 `500`
