@@ -419,6 +419,12 @@ async function fetchProtocols(env: Env): Promise<DefiLlamaProtocol[]> {
   return data;
 }
 
+function searchMatches(protocol: DefiLlamaProtocol, query: string): boolean {
+  const q = query.toLowerCase();
+  return protocol.name.toLowerCase().includes(q)
+    || (protocol.slug?.toLowerCase().includes(q) ?? false);
+}
+
 function buildResponse(
   protocols: DefiLlamaProtocol[],
   requestedChain: string,
@@ -426,6 +432,7 @@ function buildResponse(
   filters: DappFilters,
   pagination: DappPagination,
   options: DappOptions,
+  search?: string,
 ): DappListResponse {
   const byGroup: Record<DappGroup, number> = {
     dex: 0,
@@ -438,6 +445,7 @@ function buildResponse(
 
   const items: DappResource[] = protocols
     .filter((protocol) => chainMatches(protocol.chains, canonicalChain))
+    .filter((protocol) => !search || searchMatches(protocol, search))
     .map((protocol) => {
       const category = protocol.category ?? 'Unknown';
       const group = getGroupFromCategory(category);
@@ -539,6 +547,7 @@ function openapiSpec() {
           tags: ['DApps'],
           parameters: [
             { name: 'chain', in: 'query', required: true, schema: { type: 'string' }, description: '链名称或常见别名，如 eth/bnb/arb' },
+            { name: 'search', in: 'query', required: false, schema: { type: 'string' }, description: '按 DApp 名称或 slug 模糊搜索（如 uniswap）' },
             { name: 'group', in: 'query', required: false, schema: { type: 'string', enum: VALID_GROUPS }, description: 'DApp 分组过滤' },
             { name: 'category', in: 'query', required: false, schema: { type: 'string' }, description: '按 DefiLlama category 过滤' },
             { name: 'limit', in: 'query', required: false, schema: { type: 'integer', minimum: 1, maximum: 500 } },
@@ -748,12 +757,13 @@ app.get('/api/v1/dapps', async (c) => {
 
   try {
     const protocols = await fetchProtocols(c.env);
+    const search = c.req.query('search')?.trim() || undefined;
     return c.json(buildResponse(protocols, requestedChain, canonicalChain, parsedFilters, parsedPagination, {
       sort: parsedSort,
       projection: parsedProjection,
       includeTotal,
       excludeSummary,
-    }));
+    }, search));
   } catch (error) {
     return c.json({
       success: false,
